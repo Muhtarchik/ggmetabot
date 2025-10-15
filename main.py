@@ -1,20 +1,16 @@
-import asyncio
 import os
 from aiogram import Bot, Dispatcher, types
 from aiogram.filters import CommandStart
 from aiohttp import web
 
-# Получаем токен и URL из окружения
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 RENDER_EXTERNAL_URL = os.getenv("RENDER_EXTERNAL_URL")
 
-if not BOT_TOKEN:
-    raise RuntimeError("❌ BOT_TOKEN не задан! Добавь его в Environment Variables Render.")
-if not RENDER_EXTERNAL_URL:
-    raise RuntimeError("❌ RENDER_EXTERNAL_URL не задан! Добавь его в Environment Variables Render.")
+if not BOT_TOKEN or not RENDER_EXTERNAL_URL:
+    raise RuntimeError("❌ BOT_TOKEN или RENDER_EXTERNAL_URL не заданы!")
 
 bot = Bot(token=BOT_TOKEN)
-dp = Dispatcher()
+dp = Dispatcher(bot)
 
 # === Команда /start ===
 @dp.message(CommandStart())
@@ -31,10 +27,12 @@ async def start_handler(message: types.Message):
     await message.answer(text, reply_markup=keyboard)
 
 # === Webhook setup ===
+WEBHOOK_PATH = f"/webhook/{BOT_TOKEN}"
+WEBHOOK_URL = f"{RENDER_EXTERNAL_URL}{WEBHOOK_PATH}"
+
 async def on_startup(app):
-    webhook_url = f"{RENDER_EXTERNAL_URL}/webhook"
-    await bot.set_webhook(webhook_url)
-    print(f"✅ Webhook установлен: {webhook_url}")
+    await bot.set_webhook(WEBHOOK_URL)
+    print(f"✅ Webhook установлен: {WEBHOOK_URL}")
 
 async def on_shutdown(app):
     await bot.delete_webhook()
@@ -49,7 +47,7 @@ async def handle_webhook(request):
 
 # === Запуск aiohttp сервера ===
 app = web.Application()
-app.router.add_post("/webhook", handle_webhook)
+app.router.add_post(WEBHOOK_PATH, handle_webhook)
 app.on_startup.append(on_startup)
 app.on_shutdown.append(on_shutdown)
 
