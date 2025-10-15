@@ -3,7 +3,7 @@ from aiogram import Bot, Dispatcher, types
 from aiogram.filters import CommandStart
 import os
 
-# Читаем токен из переменных окружения Render
+# Токен бота из Environment Variables Render
 BOT_TOKEN = os.environ.get("BOT_TOKEN")
 if not BOT_TOKEN:
     raise RuntimeError("BOT_TOKEN не задан! Добавьте его в Environment Variables Render.")
@@ -11,15 +11,17 @@ if not BOT_TOKEN:
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()
 
-# Приветственное сообщение и кнопки
+# Команда /start
 @dp.message(CommandStart())
 async def start_handler(message: types.Message):
-    text = "🎁 Привет! Это Virus Gift Bot — место, где можно ловить халяву!\nВыбери, что тебе интересно 👇"
+    text = "🎁 Привет! Это Virus Gift Bot — выбирай, что тебе интересно 👇"
     keyboard = types.InlineKeyboardMarkup(inline_keyboard=[
-        [types.InlineKeyboardButton(text="🎁 Получить подарок", url="https://t.me/ССЫЛКА_НА_РУЛЕТКУ")],
-        [types.InlineKeyboardButton(text="💫 Купить звёзды", url="https://t.me/ССЫЛКА_НА_ПОКУПКУ")],
-        [types.InlineKeyboardButton(text="💵 Получить $5 бонус", url="https://t.me/ССЫЛКА_НА_РЕГИСТРАЦИЮ")],
-        [types.InlineKeyboardButton(text="🧠 Подписаться на канал", url="https://t.me/virusmetg")]
+        [types.InlineKeyboardButton(text="🎁 Получить подарок", url="https://t.me/virus_play_bot/app?startapp=roulette_inviteCodesmKkOJLS3JDvHhYM")],
+        [types.InlineKeyboardButton(text="💫 Купить звёзды", url="https://split.tg/?ref=UQAENEC9lNreXR8K35LgVzEKK3zAL4-8Dq5d-0rqFMZuDmFC")],
+        [types.InlineKeyboardButton(text="💵 Получить скин за $5 (промо BETME)", url="https://plg.bet/ru/affiliates")], 
+        [types.InlineKeyboardButton(text="🧠 Подписаться на канал", url="https://t.me/virusmetg")],
+        [types.InlineKeyboardButton(text="🎮 Маркетплейс tg подарков", url="https://t.me/portals/market?startapp=4vp0jk")], 
+        [types.InlineKeyboardButton(text="🎰Рулетка tg подарков", url="https://t.me/rollsgame_bot/app?startapp=ref_jeBivgoYMO")], 
     ])
     await message.answer(text, reply_markup=keyboard)
 
