@@ -13,7 +13,7 @@ if not RENDER_EXTERNAL_URL:
     raise RuntimeError("❌ RENDER_EXTERNAL_URL не задан! Добавь его в Environment Variables Render.")
 
 bot = Bot(token=BOT_TOKEN)
-dp = Dispatcher()  # ✅ Теперь без аргументов
+dp = Dispatcher()
 
 # === Команда /start ===
 @dp.message(CommandStart())
@@ -40,19 +40,24 @@ async def on_shutdown(app):
     await bot.session.close()
     print("🛑 Webhook удалён и бот остановлен.")
 
-# === Обработка входящих webhook-запросов ===
+# === Обработка webhook ===
 async def handle_webhook(request):
     data = await request.json()
     update = types.Update(**data)
     await dp.feed_update(bot, update)
     return web.Response()
 
+# === Корневой маршрут для проверки сервиса ===
+async def index(request):
+    return web.Response(text="🟢 Бот работает!")
+
 # === Запуск aiohttp сервера ===
 app = web.Application()
 app.router.add_post("/webhook", handle_webhook)
+app.router.add_get("/", index)
 app.on_startup.append(on_startup)
 app.on_shutdown.append(on_shutdown)
 
 if __name__ == "__main__":
-    port = int(os.getenv("PORT", 10000))  # Render сам задаёт PORT
+    port = int(os.getenv("PORT", 10000))
     web.run_app(app, host="0.0.0.0", port=port)
