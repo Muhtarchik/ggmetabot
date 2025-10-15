@@ -3,9 +3,10 @@ from aiogram import Bot, Dispatcher, types
 from aiogram.filters import CommandStart
 from aiohttp import web
 
-# Получаем токен и URL из окружения
+# Получаем токен и URL из переменных окружения
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 RENDER_EXTERNAL_URL = os.getenv("RENDER_EXTERNAL_URL")
+PORT = int(os.getenv("PORT", 10000))
 
 if not BOT_TOKEN:
     raise RuntimeError("❌ BOT_TOKEN не задан! Добавь его в Environment Variables Render.")
@@ -13,7 +14,7 @@ if not RENDER_EXTERNAL_URL:
     raise RuntimeError("❌ RENDER_EXTERNAL_URL не задан! Добавь его в Environment Variables Render.")
 
 bot = Bot(token=BOT_TOKEN)
-dp = Dispatcher()
+dp = Dispatcher()  # В Aiogram 3.22.0 Dispatcher больше не принимает Bot в __init__
 
 # === Команда /start ===
 @dp.message(CommandStart())
@@ -53,5 +54,4 @@ app.on_startup.append(on_startup)
 app.on_shutdown.append(on_shutdown)
 
 if __name__ == "__main__":
-    port = int(os.getenv("PORT", 10000))
-    web.run_app(app, host="0.0.0.0", port=port)
+    web.run_app(app, host="0.0.0.0", port=PORT)
