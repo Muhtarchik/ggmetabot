@@ -40,21 +40,15 @@ async def on_shutdown(app):
     await bot.session.close()
     print("🛑 Webhook удалён и бот остановлен.")
 
-# === Обработка webhook ===
 async def handle_webhook(request):
     data = await request.json()
     update = types.Update(**data)
     await dp.feed_update(bot, update)
     return web.Response()
 
-# === Корневой маршрут для проверки сервиса ===
-async def index(request):
-    return web.Response(text="🟢 Бот работает!")
-
 # === Запуск aiohttp сервера ===
 app = web.Application()
 app.router.add_post("/webhook", handle_webhook)
-app.router.add_get("/", index)
 app.on_startup.append(on_startup)
 app.on_shutdown.append(on_shutdown)
 
