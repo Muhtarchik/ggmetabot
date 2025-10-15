@@ -14,9 +14,9 @@ if not RENDER_EXTERNAL_URL:
     raise RuntimeError("❌ RENDER_EXTERNAL_URL не задан! Добавь его в Environment Variables Render.")
 
 bot = Bot(token=BOT_TOKEN)
-dp = Dispatcher()  # В Aiogram 3.22.0 Dispatcher больше не принимает Bot в __init__
+dp = Dispatcher()  # В Aiogram 3.22 Dispatcher не принимает Bot в конструктор
 
-# === Команда /start ===
+# ===== Команда /start =====
 @dp.message(CommandStart())
 async def start_handler(message: types.Message):
     text = "🎁 Привет! Это Virus Gift Bot — выбирай, что тебе интересно 👇"
@@ -30,7 +30,7 @@ async def start_handler(message: types.Message):
     ])
     await message.answer(text, reply_markup=keyboard)
 
-# === Webhook setup ===
+# ===== Webhook setup =====
 async def on_startup(app):
     webhook_url = f"{RENDER_EXTERNAL_URL}/webhook"
     await bot.set_webhook(webhook_url)
@@ -47,7 +47,7 @@ async def handle_webhook(request):
     await dp.feed_update(bot, update)
     return web.Response()
 
-# === Запуск aiohttp сервера ===
+# ===== Запуск aiohttp сервера =====
 app = web.Application()
 app.router.add_post("/webhook", handle_webhook)
 app.on_startup.append(on_startup)
