@@ -3,7 +3,7 @@ from aiogram import Bot, Dispatcher, types
 from aiogram.filters import CommandStart
 from aiohttp import web
 
-# Получаем токен и URL из переменных окружения
+# Получаем токен и URL из окружения
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 RENDER_EXTERNAL_URL = os.getenv("RENDER_EXTERNAL_URL")
 
@@ -13,7 +13,7 @@ if not RENDER_EXTERNAL_URL:
     raise RuntimeError("❌ RENDER_EXTERNAL_URL не задан! Добавь его в Environment Variables Render.")
 
 bot = Bot(token=BOT_TOKEN)
-dp = Dispatcher()  # В 3.22 бот не передается в конструктор
+dp = Dispatcher()  # ✅ Теперь без аргументов
 
 # === Команда /start ===
 @dp.message(CommandStart())
@@ -40,7 +40,7 @@ async def on_shutdown(app):
     await bot.session.close()
     print("🛑 Webhook удалён и бот остановлен.")
 
-# === Обработка webhook ===
+# === Обработка входящих webhook-запросов ===
 async def handle_webhook(request):
     data = await request.json()
     update = types.Update(**data)
@@ -54,5 +54,5 @@ app.on_startup.append(on_startup)
 app.on_shutdown.append(on_shutdown)
 
 if __name__ == "__main__":
-    port = int(os.getenv("PORT", 10000))
+    port = int(os.getenv("PORT", 10000))  # Render сам задаёт PORT
     web.run_app(app, host="0.0.0.0", port=port)
