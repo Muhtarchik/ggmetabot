@@ -1,22 +1,18 @@
 import os
+import asyncio
 from aiogram import Bot, Dispatcher, types
 from aiogram.filters import CommandStart
-from aiohttp import web
 
-# Получаем токен и URL из переменных окружения
+# Получаем токен бота из переменных окружения Render
 BOT_TOKEN = os.getenv("BOT_TOKEN")
-RENDER_EXTERNAL_URL = os.getenv("RENDER_EXTERNAL_URL")
-PORT = int(os.getenv("PORT", 10000))
 
 if not BOT_TOKEN:
     raise RuntimeError("❌ BOT_TOKEN не задан! Добавь его в Environment Variables Render.")
-if not RENDER_EXTERNAL_URL:
-    raise RuntimeError("❌ RENDER_EXTERNAL_URL не задан! Добавь его в Environment Variables Render.")
 
 bot = Bot(token=BOT_TOKEN)
-dp = Dispatcher()  # В Aiogram 3.22 Dispatcher не принимает Bot в конструктор
+dp = Dispatcher()
 
-# ===== Команда /start =====
+# === Команда /start ===
 @dp.message(CommandStart())
 async def start_handler(message: types.Message):
     text = "🎁 Привет! Это Virus Gift Bot — выбирай, что тебе интересно 👇"
@@ -30,28 +26,14 @@ async def start_handler(message: types.Message):
     ])
     await message.answer(text, reply_markup=keyboard)
 
-# ===== Webhook setup =====
-async def on_startup(app):
-    webhook_url = f"{RENDER_EXTERNAL_URL}/webhook"
-    await bot.set_webhook(webhook_url)
-    print(f"✅ Webhook установлен: {webhook_url}")
-
-async def on_shutdown(app):
-    await bot.delete_webhook()
-    await bot.session.close()
-    print("🛑 Webhook удалён и бот остановлен.")
-
-async def handle_webhook(request):
-    data = await request.json()
-    update = types.Update(**data)
-    await dp.feed_update(bot, update)
-    return web.Response()
-
-# ===== Запуск aiohttp сервера =====
-app = web.Application()
-app.router.add_post("/webhook", handle_webhook)
-app.on_startup.append(on_startup)
-app.on_shutdown.append(on_shutdown)
+# === Запуск Long Polling ===
+async def main():
+    print("✅ Бот запущен на Long Polling, работает 24/7!")
+    try:
+        await dp.start_polling(bot)
+    finally:
+        await bot.session.close()
+        print("🛑 Бот остановлен.")
 
 if __name__ == "__main__":
-    web.run_app(app, host="0.0.0.0", port=PORT)
+    asyncio.run(main())
