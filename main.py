@@ -4,23 +4,19 @@ from aiogram import Bot, Dispatcher, types
 from aiogram.filters import CommandStart
 from aiohttp import web
 
-# Токен из Render Environment Variables
-BOT_TOKEN = os.environ.get("BOT_TOKEN")
+# Получаем токен и URL из окружения
+BOT_TOKEN = os.getenv("BOT_TOKEN")
+RENDER_EXTERNAL_URL = os.getenv("RENDER_EXTERNAL_URL")
+
 if not BOT_TOKEN:
-    raise RuntimeError("BOT_TOKEN не задан! Добавьте его в Environment Variables Render.")
-
-# Получаем URL Render (он появится после деплоя)
-RENDER_EXTERNAL_URL = os.environ.get("RENDER_EXTERNAL_URL")
+    raise RuntimeError("❌ BOT_TOKEN не задан! Добавь его в Environment Variables Render.")
 if not RENDER_EXTERNAL_URL:
-    raise RuntimeError("RENDER_EXTERNAL_URL не задан! Добавьте переменную окружения.")
-
-WEBHOOK_PATH = f"/webhook/{BOT_TOKEN}"
-WEBHOOK_URL = f"{RENDER_EXTERNAL_URL}{WEBHOOK_PATH}"
+    raise RuntimeError("❌ RENDER_EXTERNAL_URL не задан! Добавь его в Environment Variables Render.")
 
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()
 
-# Команда /start
+# === Команда /start ===
 @dp.message(CommandStart())
 async def start_handler(message: types.Message):
     text = "🎁 Привет! Это Virus Gift Bot — выбирай, что тебе интересно 👇"
@@ -34,27 +30,29 @@ async def start_handler(message: types.Message):
     ])
     await message.answer(text, reply_markup=keyboard)
 
-# ---------- AIOHTTP SERVER ----------
-async def handle(request):
-    update = await request.json()
-    await dp.feed_update(bot, update)
-    return web.Response()
-
+# === Webhook setup ===
 async def on_startup(app):
-    await bot.set_webhook(WEBHOOK_URL)
-    print(f"✅ Webhook установлен: {WEBHOOK_URL}")
+    webhook_url = f"{RENDER_EXTERNAL_URL}/webhook"
+    await bot.set_webhook(webhook_url)
+    print(f"✅ Webhook установлен: {webhook_url}")
 
 async def on_shutdown(app):
     await bot.delete_webhook()
     await bot.session.close()
-    print("🛑 Webhook удалён")
+    print("🛑 Webhook удалён и бот остановлен.")
 
-def main():
-    app = web.Application()
-    app.router.add_post(WEBHOOK_PATH, handle)
-    app.on_startup.append(on_startup)
-    app.on_shutdown.append(on_shutdown)
-    web.run_app(app, host="0.0.0.0", port=int(os.environ.get("PORT", 10000)))
+async def handle_webhook(request):
+    data = await request.json()
+    update = types.Update(**data)
+    await dp.feed_update(bot, update)
+    return web.Response()
+
+# === Запуск aiohttp сервера ===
+app = web.Application()
+app.router.add_post("/webhook", handle_webhook)
+app.on_startup.append(on_startup)
+app.on_shutdown.append(on_shutdown)
 
 if __name__ == "__main__":
-    main()
+    port = int(os.getenv("PORT", 10000))
+    web.run_app(app, host="0.0.0.0", port=port)
