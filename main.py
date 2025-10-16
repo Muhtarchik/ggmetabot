@@ -1,21 +1,23 @@
-import os
 import asyncio
+import os
 from aiogram import Bot, Dispatcher, types
 from aiogram.filters import CommandStart
 
-# Получаем токен бота из переменных окружения Render
+# Токен бота
 BOT_TOKEN = os.getenv("BOT_TOKEN")
-
 if not BOT_TOKEN:
     raise RuntimeError("❌ BOT_TOKEN не задан! Добавь его в Environment Variables Render.")
 
+# Инициализация бота и диспетчера
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()
 
-# === Команда /start ===
+# Команда /start
 @dp.message(CommandStart())
 async def start_handler(message: types.Message):
-    text = "🎁 Привет! Это Virus Gift Bot — выбирай, что тебе интересно 👇"
+    text = (
+        "🎁 Привет! Это Virus Gift Bot — выбирай, что тебе интересно 👇"
+    )
     keyboard = types.InlineKeyboardMarkup(inline_keyboard=[
         [types.InlineKeyboardButton(text="🎁 Получить подарок", url="https://t.me/virus_play_bot/app?startapp=roulette_inviteCodesmKkOJLS3JDvHhYM")],
         [types.InlineKeyboardButton(text="💫 Купить звёзды", url="https://split.tg/?ref=UQAENEC9lNreXR8K35LgVzEKK3zAL4-8Dq5d-0rqFMZuDmFC")],
@@ -26,7 +28,7 @@ async def start_handler(message: types.Message):
     ])
     await message.answer(text, reply_markup=keyboard)
 
-# === Запуск Long Polling ===
+# Запуск Long Polling
 async def main():
     print("✅ Бот запущен на Long Polling, работает 24/7!")
     try:
